@@ -1,0 +1,111 @@
+@import "../../responsive.scss";
+
+.searchBar {
+  .type {
+    display: flex;
+    margin-bottom: 12px;
+
+    button {
+      padding: 16px 36px;
+      border: 1px solid #999;
+      cursor: pointer;
+      background-color: white;
+      text-transform: capitalize;
+
+      &.active {
+        background-color: black;
+        color: white;
+      }
+
+      &:first-child {
+        border-top-left-radius: 14px;
+        border-bottom-left-radius: 14px;
+        border-right: none;
+      }
+      &:last-child {
+        border-top-right-radius: 14px;
+        border-bottom-right-radius: 14px;
+        border-left: none;
+      }
+    }
+  }
+
+  form {
+    border: 1px solid #999;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    height: 64px;
+    gap: 0;
+    overflow: hidden;
+
+    @include sm {
+      flex-direction: column;
+      border: none;
+    }
+
+    input {
+      border: none;
+      border-right: 1px solid rgba(153, 153, 153, 0.45);
+      padding: 0px 10px;
+      width: 200px;
+      background-color: white;
+
+      @include lg {
+        padding: 0px 5px;
+
+        &:nth-child(2),
+        &:nth-child(3) {
+          width: 140px;
+        }
+      }
+      @include md {
+        width: 200px;
+        &:nth-child(2),
+        &:nth-child(3) {
+          width: 200px;
+        }
+      }
+
+      @include sm{
+        width: auto;
+        &:nth-child(2),
+        &:nth-child(3),
+        &:nth-child(4) {
+          width: auto;
+        }
+        padding: 20px;
+        border: 1px solid #999;
+      }
+    }
+
+    a{
+      flex: 0 0 84px;
+      background-color: #fece51;
+      border-left: 1px solid rgba(153, 153, 153, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      @include sm {
+        flex: unset;
+        min-height: 64px;
+      }
+
+      button {
+        border: none;
+        cursor: pointer;
+        background-color: #fece51;
+        
+        @include sm{
+          padding: 10px;
+        }
+        
+        img {
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+  }
+}

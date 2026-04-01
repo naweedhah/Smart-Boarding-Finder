@@ -1,0 +1,469 @@
+@import "../../responsive.scss";
+
+.profilePage {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+
+  @include md {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .details {
+    flex: 3;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 24px 0 50px;
+
+    @include md {
+      flex: none;
+      overflow: visible;
+      padding-bottom: 24px;
+    }
+
+    .wrapper {
+      padding-right: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+
+      @include md {
+        padding-right: 0;
+      }
+    }
+  }
+
+  .chatContainer {
+    flex: 2;
+    min-width: 0;
+    background-color: #fcf5f3;
+    height: 100%;
+    transition:
+      flex-basis 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.35s ease;
+
+    @include md {
+      flex: none;
+      height: auto;
+      min-height: 0;
+    }
+
+    .wrapper {
+      height: 100%;
+      padding: 24px 20px;
+    }
+
+    &.collapsed {
+      flex: 0 0 340px;
+
+      @include md {
+        flex: none;
+      }
+    }
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    color: #7e736d;
+    margin-bottom: 8px;
+  }
+
+  .heroCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) 320px;
+    gap: 20px;
+
+    @include lg {
+      grid-template-columns: minmax(0, 1fr) 290px;
+    }
+
+    @include md {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .heroCopy,
+  .profileCard,
+  .panel,
+  .emptyPanel,
+  .statCard,
+  .messageShell {
+    min-width: 0;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 24px;
+    box-shadow: 0 14px 30px rgba(22, 22, 22, 0.05);
+  }
+
+  .heroCopy {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 280px;
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 3.8rem);
+      line-height: 1.02;
+      max-width: 12ch;
+      margin-bottom: 16px;
+
+      @include lg {
+        max-width: 10ch;
+      }
+
+      @include sm {
+        font-size: clamp(2rem, 11vw, 3rem);
+      }
+    }
+
+    .heroText {
+      max-width: 60ch;
+      color: #544b47;
+      font-size: 18px;
+      line-height: 1.6;
+
+      @include sm {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .heroActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+
+    button {
+      padding: 14px 22px;
+      border: none;
+      background-color: #fece51;
+      cursor: pointer;
+      border-radius: 14px;
+      font-weight: 600;
+    }
+
+    .secondary {
+      background-color: #f2ebe8;
+    }
+  }
+
+  .profileCard {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: linear-gradient(180deg, #fff 0%, #fcf5f3 100%);
+
+    img {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .profileMeta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      h2 {
+        font-size: 28px;
+      }
+
+      span {
+        color: #544b47;
+        word-break: break-word;
+      }
+    }
+  }
+
+  .profileTags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    span {
+      background-color: rgba(254, 206, 81, 0.25);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+  }
+
+  .logoutButton {
+    width: fit-content;
+    border: none;
+    background-color: teal;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+
+    @include lg {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @include sm {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .statCard {
+    padding: 22px 20px;
+
+    h2 {
+      font-size: clamp(2rem, 3vw, 3rem);
+      margin-bottom: 6px;
+    }
+
+    p {
+      color: #5e5753;
+    }
+  }
+
+  .dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+
+    @include lg {
+      grid-template-columns: 1fr;
+    }
+
+    @include sm {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .panel {
+    padding: 24px;
+    min-height: 220px;
+  }
+
+  .panelHeading,
+  .sectionHeading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+
+    h3 {
+      font-size: 32px;
+      font-weight: 300;
+      overflow-wrap: anywhere;
+    }
+
+    a {
+      background-color: #fece51;
+      padding: 10px 14px;
+      border-radius: 12px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    @include sm {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .statusGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+
+    @include sm {
+      grid-template-columns: 1fr;
+    }
+
+    div {
+      background-color: #fcf5f3;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    strong {
+      font-size: 28px;
+    }
+
+    span {
+      color: #675e58;
+    }
+  }
+
+  .stackList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .infoRow {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background-color: #fcf5f3;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    strong {
+      font-size: 16px;
+    }
+
+    span {
+      color: #605853;
+      line-height: 1.5;
+    }
+
+    &.unread {
+      background-color: rgba(254, 206, 81, 0.18);
+    }
+  }
+
+  .emptyText {
+    color: #655b56;
+    line-height: 1.6;
+    max-width: 52ch;
+  }
+
+  .savedSection {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .emptyPanel {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+
+    p {
+      color: #605853;
+      line-height: 1.6;
+      max-width: 58ch;
+    }
+
+    button {
+      padding: 14px 22px;
+      border: none;
+      background-color: #fece51;
+      cursor: pointer;
+      border-radius: 14px;
+      font-weight: 600;
+    }
+  }
+
+  .messageShell {
+    height: 100%;
+    min-height: 0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition:
+      padding 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+
+    .sectionHeading {
+      margin-bottom: 14px;
+    }
+  }
+
+  .messageActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    @include sm {
+      justify-content: flex-start;
+    }
+  }
+
+  .messagePill {
+    background-color: #fecd514e;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .collapseButton {
+    border: none;
+    background-color: #f2ebe8;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .collapsedState {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 18px;
+    background-color: #fcf5f3;
+
+    strong {
+      font-size: 18px;
+    }
+
+    p {
+      color: #605853;
+      line-height: 1.6;
+    }
+  }
+}
+
+body.dashboard-chat-collapsed {
+  nav {
+    .right {
+      flex: 0 0 340px;
+
+      @include md {
+        flex: 2;
+      }
+    }
+  }
+
+  .profilePage {
+    .chatContainer {
+      flex: 0 0 340px;
+
+      @include md {
+        flex: none;
+      }
+
+      .messageShell {
+        transform: translateX(0);
+
+        .sectionHeading h3 {
+          font-size: 26px;
+        }
+      }
+    }
+  }
+}

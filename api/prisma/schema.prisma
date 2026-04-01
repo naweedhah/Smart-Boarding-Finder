@@ -1,0 +1,378 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  student
+  boardingOwner
+  admin
+}
+
+enum Gender {
+  male
+  female
+  other
+  preferNotToSay
+}
+
+enum BoardingStatus {
+  available
+  full
+  reserved
+  inactive
+}
+
+enum BoardingType {
+  singleRoom
+  sharedRoom
+  annex
+  hostel
+  houseShare
+}
+
+enum PreferredTenantGender {
+  male
+  female
+  any
+}
+
+enum BookingRequestStatus {
+  pending
+  approved
+  rejected
+  paymentPending
+  confirmed
+  cancelled
+  expired
+}
+
+enum PaymentStatus {
+  pending
+  submitted
+  verified
+  rejected
+}
+
+enum NotificationType {
+  accountCreated
+  otpSent
+  bookingRequested
+  bookingApproved
+  bookingRejected
+  paymentSubmitted
+  paymentVerified
+  boardingAvailable
+  watchlistMatch
+  roommateMatchFound
+  reportSubmitted
+  complaintSubmitted
+}
+
+enum NotificationChannel {
+  email
+  inApp
+}
+
+enum ReportStatus {
+  open
+  underReview
+  resolved
+  dismissed
+}
+
+enum ReportTargetType {
+  user
+  boarding
+  bookingRequest
+  message
+}
+
+enum ComplaintTargetType {
+  platform
+  user
+  boarding
+  booking
+}
+
+model Post {
+  id                    String                @id @default(auto()) @map("_id") @db.ObjectId
+  title                 String
+  rent                  Int
+  images                String[]
+  address               String
+  city                  String
+  area                  String?
+  latitude              String
+  longitude             String
+  boardingType          BoardingType
+  status                BoardingStatus        @default(available)
+  capacity              Int
+  bathroomCount         Int?
+  preferredTenantGender PreferredTenantGender @default(any)
+  owner                 User                  @relation("OwnedPosts", fields: [ownerId], references: [id])
+  ownerId               String                @db.ObjectId
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  postDetail            PostDetail?
+  savedPosts            SavedPost[]
+  bookingRequests       BookingRequest[]
+  watchlists            Watchlist[]
+  reports               Report[]
+}
+
+model PostDetail {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  description         String
+  wifi                Boolean  @default(false)
+  mealsProvided       Boolean  @default(false)
+  kitchenAccess       Boolean  @default(false)
+  parking             Boolean  @default(false)
+  attachedBathroom    Boolean  @default(false)
+  furnished           Boolean  @default(false)
+  petAllowed          Boolean  @default(false)
+  nearestCampus       String?
+  distanceToCampus    Int?
+  distanceToBusStop   Int?
+  distanceToTown      Int?
+  rules               String?
+  post                Post     @relation(fields: [postId], references: [id])
+  postId              String   @unique @db.ObjectId
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model SavedPost {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
+  userId    String   @db.ObjectId
+  postId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model BookingRequest {
+  id              String               @id @default(auto()) @map("_id") @db.ObjectId
+  student         User                 @relation("StudentBookingRequests", fields: [studentId], references: [id])
+  studentId       String               @db.ObjectId
+  owner           User                 @relation("OwnerBookingRequests", fields: [ownerId], references: [id])
+  ownerId         String               @db.ObjectId
+  post            Post                 @relation(fields: [postId], references: [id])
+  postId          String               @db.ObjectId
+  status          BookingRequestStatus @default(pending)
+  message         String?
+  requestedMoveIn DateTime?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  confirmedAt     DateTime?
+  expiresAt       DateTime?
+  payment         BookingPayment?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model BookingPayment {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  bookingRequest   BookingRequest @relation(fields: [bookingRequestId], references: [id])
+  bookingRequestId String        @unique @db.ObjectId
+  amount           Int
+  status           PaymentStatus @default(pending)
+  method           String?
+  bankReference    String?
+  proofImage       String?
+  submittedAt      DateTime?
+  verifiedAt       DateTime?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Watchlist {
+  id                     String                 @id @default(auto()) @map("_id") @db.ObjectId
+  user                   User                   @relation(fields: [userId], references: [id])
+  userId                 String                 @db.ObjectId
+  post                   Post?                  @relation(fields: [postId], references: [id])
+  postId                 String?                @db.ObjectId
+  city                   String?
+  area                   String?
+  minBudget              Int?
+  maxBudget              Int?
+  preferredTenantGender  PreferredTenantGender?
+  boardingType           BoardingType?
+  minCapacity            Int?
+  wifiRequired           Boolean?
+  mealsRequired          Boolean?
+  attachedBathroomNeeded Boolean?
+  isActive               Boolean                @default(true)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+}
+
+model Notification {
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  user      User                @relation(fields: [userId], references: [id])
+  userId    String              @db.ObjectId
+  type      NotificationType
+  channel   NotificationChannel
+  title     String
+  message   String
+  isRead    Boolean             @default(false)
+  sentAt    DateTime?
+  readAt    DateTime?
+  metadata  Json?
+  createdAt DateTime            @default(now())
+}
+
+model NotificationPreference {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  user                  User     @relation(fields: [userId], references: [id])
+  userId                String   @unique @db.ObjectId
+  emailEnabled          Boolean  @default(true)
+  inAppEnabled          Boolean  @default(true)
+  bookingUpdates        Boolean  @default(true)
+  watchlistAlerts       Boolean  @default(true)
+  roommateAlerts        Boolean  @default(true)
+  moderationAlerts      Boolean  @default(true)
+  accountSecurityAlerts Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model OtpCode {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String?  @db.ObjectId
+  email      String
+  code       String
+  purpose    String
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model RoommatePreference {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  user               User     @relation(fields: [userId], references: [id])
+  userId             String   @unique @db.ObjectId
+  age                Int?
+  university         String?
+  faculty            String?
+  yearOfStudy        String?
+  budgetMin          Int?
+  budgetMax          Int?
+  preferredCity      String?
+  preferredArea      String?
+  sleepSchedule      String?
+  cleanlinessLevel   Int?
+  studyHabit         String?
+  smokingAllowed     Boolean?
+  petsAllowed        Boolean?
+  foodPreference     String?
+  sociabilityLevel   Int?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model RoommateMatch {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userA     User     @relation("RoommateMatchUserA", fields: [userAId], references: [id])
+  userAId   String   @db.ObjectId
+  userB     User     @relation("RoommateMatchUserB", fields: [userBId], references: [id])
+  userBId   String   @db.ObjectId
+  score     Float
+  reasons   String[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userAId, userBId])
+}
+
+model Report {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  reporter    User             @relation("ReportReporter", fields: [reporterId], references: [id])
+  reporterId  String           @db.ObjectId
+  post        Post?            @relation(fields: [postId], references: [id])
+  postId      String?          @db.ObjectId
+  targetType  ReportTargetType
+  targetId    String
+  reason      String
+  description String?
+  status      ReportStatus     @default(open)
+  adminNotes  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Complaint {
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
+  reporter    User                @relation("ComplaintReporter", fields: [reporterId], references: [id])
+  reporterId  String              @db.ObjectId
+  targetType  ComplaintTargetType
+  targetId    String?
+  subject     String
+  description String
+  status      ReportStatus        @default(open)
+  adminNotes  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model User {
+  id                        String                  @id @default(auto()) @map("_id") @db.ObjectId
+  email                     String                  @unique
+  username                  String                  @unique
+  password                  String
+  avatar                    String?
+  fullName                  String?
+  phone                     String?
+  gender                    Gender?
+  role                      UserRole                @default(student)
+  isActive                  Boolean                 @default(true)
+  isVerified                Boolean                 @default(false)
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
+  ownedPosts                Post[]                  @relation("OwnedPosts")
+  savedPosts                SavedPost[]
+  bookingRequests           BookingRequest[]        @relation("StudentBookingRequests")
+  receivedBookingRequests   BookingRequest[]        @relation("OwnerBookingRequests")
+  watchlists                Watchlist[]
+  notifications             Notification[]
+  notificationPreference    NotificationPreference?
+  otpCodes                  OtpCode[]
+  roommatePreference        RoommatePreference?
+  roommateMatchesAsUserA    RoommateMatch[]         @relation("RoommateMatchUserA")
+  roommateMatchesAsUserB    RoommateMatch[]         @relation("RoommateMatchUserB")
+  sentReports               Report[]                @relation("ReportReporter")
+  complaints                Complaint[]             @relation("ComplaintReporter")
+  chats                     Chat[]                  @relation(fields: [chatIDs], references: [id])
+  chatIDs                   String[]                @db.ObjectId
+}
+
+model Chat {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  users       User[]    @relation(fields: [userIDs], references: [id])
+  userIDs     String[]  @db.ObjectId
+  createdAt   DateTime  @default(now())
+  seenBy      String[]  @db.ObjectId
+  messages    Message[]
+  lastMessage String?
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  text      String
+  userId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  chatId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+}
