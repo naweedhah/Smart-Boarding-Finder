@@ -1,8 +1,9 @@
-const axios = require("axios");
+import axios from "axios";
 
 let inquiries = [];
 
-exports.createInquiry = (req, res) => {
+// CREATE INQUIRY
+export const createInquiry = (req, res) => {
   const { postId, ownerId, type } = req.body;
 
   const inquiry = {
@@ -20,17 +21,20 @@ exports.createInquiry = (req, res) => {
   res.json(inquiry);
 };
 
-
-exports.getInquiries = (req, res) => {
+// GET ALL INQUIRIES
+export const getInquiries = (req, res) => {
   res.json(inquiries);
 };
 
-exports.updateStatus = (req, res) => {
+// UPDATE STATUS
+export const updateStatus = (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
   const inquiry = inquiries.find(i => i.id === id);
-  if (!inquiry) return res.status(404).json({ message: "Not found" });
+  if (!inquiry) {
+    return res.status(404).json({ message: "Not found" });
+  }
 
   inquiry.status = status;
 
@@ -40,7 +44,8 @@ exports.updateStatus = (req, res) => {
   });
 };
 
-exports.acceptInquiry = async (req, res) => {
+// ACCEPT INQUIRY + CREATE CHAT
+export const acceptInquiry = async (req, res) => {
   const { id } = req.params;
 
   const inquiry = inquiries.find(i => i.id === id);
@@ -49,7 +54,6 @@ exports.acceptInquiry = async (req, res) => {
     return res.status(404).json({ message: "Inquiry not found" });
   }
 
-  // update status
   inquiry.status = "accepted";
 
   try {
@@ -62,7 +66,6 @@ exports.acceptInquiry = async (req, res) => {
       }
     );
 
-    // link chat to inquiry
     inquiry.chatId = chatRes.data.id;
 
     res.json({
