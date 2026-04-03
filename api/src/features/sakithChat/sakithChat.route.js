@@ -1,12 +1,14 @@
-const router = require("express").Router();
-const {
+import express from "express";
+import {
   createChat,
   sendMessage,
   getMessages
-} = require("./sakithChat.controller");
+} from "./sakithChat.controller.js";
+
+const router = express.Router();
 
 router.post("/create", createChat);
 router.post("/send", sendMessage);
 router.get("/:chatId", getMessages);
 
-module.exports = router;
+export default router;
