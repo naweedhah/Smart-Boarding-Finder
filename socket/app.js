@@ -6,36 +6,50 @@ const io = new Server({
   },
 });
 
-let onlineUser = [];
+let onlineUsers = [];
 
+// Add user
 const addUser = (userId, socketId) => {
-  const userExits = onlineUser.find((user) => user.userId === userId);
-  if (!userExits) {
-    onlineUser.push({ userId, socketId });
+  const exists = onlineUsers.find((user) => user.userId === userId);
+
+  if (!exists) {
+    onlineUsers.push({ userId, socketId });
   }
 };
 
+// Remove user
 const removeUser = (socketId) => {
-  onlineUser = onlineUser.filter((user) => user.socketId !== socketId);
+  onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
 };
 
+// Get user
 const getUser = (userId) => {
-  return onlineUser.find((user) => user.userId === userId);
+  return onlineUsers.find((user) => user.userId === userId);
 };
 
 io.on("connection", (socket) => {
+  console.log("🟢 User connected:", socket.id);
+
+  // Add user when they login / open app
   socket.on("newUser", (userId) => {
     addUser(userId, socket.id);
+    console.log("👤 Online users:", onlineUsers);
   });
 
+  // Send message
   socket.on("sendMessage", ({ receiverId, data }) => {
     const receiver = getUser(receiverId);
-    io.to(receiver.socketId).emit("getMessage", data);
+
+    if (receiver) {
+      io.to(receiver.socketId).emit("getMessage", data);
+    }
   });
 
+  // Disconnect
   socket.on("disconnect", () => {
+    console.log("🔴 Disconnected:", socket.id);
     removeUser(socket.id);
   });
 });
 
-io.listen("4000");
+io.listen(4000);
