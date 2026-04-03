@@ -1,10 +1,10 @@
-const detectScam = require("../safety/scamDetector");
+import detectScam from "../safety/scamDetector.js";
 
 let chats = [];
 let messages = [];
 
-// CREATE CHAT AFTER INQUIRY
-exports.createChat = (req, res) => {
+// CREATE CHAT
+export const createChat = (req, res) => {
   const { inquiryId, studentId, ownerId } = req.body;
 
   const chat = {
@@ -20,7 +20,7 @@ exports.createChat = (req, res) => {
 };
 
 // SEND MESSAGE
-exports.sendMessage = (req, res) => {
+export const sendMessage = (req, res) => {
   const { chatId, senderId, text } = req.body;
 
   const scamFlag = detectScam(text);
@@ -40,7 +40,7 @@ exports.sendMessage = (req, res) => {
 };
 
 // GET MESSAGES
-exports.getMessages = (req, res) => {
+export const getMessages = (req, res) => {
   const { chatId } = req.params;
 
   const chatMessages = messages.filter(m => m.chatId === chatId);
