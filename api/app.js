@@ -8,6 +8,9 @@ import testRoute from "./routes/test.route.js";
 import userRoute from "./routes/user.route.js";
 import chatRoute from "./src/features/chat/chat.route.js";
 import messageRoute from "./src/features/messages/message.route.js";
+import inquiryRoute from "./src/features/inquiry/inquiry.route.js";
+import reportRoute from "./src/features/report/report.route.js";
+import sakithChatRoute from "./src/features/sakithChat/sakithChat.route.js";
 
 const app = express();
 const port = process.env.PORT || 8800;
@@ -22,9 +25,9 @@ app.use("/api/posts", postRoute);
 app.use("/api/test", testRoute);
 app.use("/api/chats", chatRoute);
 app.use("/api/messages", messageRoute);
-app.use("/api/inquiry", require("./features/inquiry/inquiry.route"));
-app.use("/api/report", require("./features/report/report.route"));
-app.use("/api/sakith-chat", require("./features/sakithChat/sakithChat.route"));
+app.use("/api/inquiry", inquiryRoute);
+app.use("/api/report", reportRoute);
+app.use("/api/sakith-chat", sakithChatRoute);
 
 
 app.listen(port, () => {
