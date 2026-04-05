@@ -11,6 +11,91 @@ import {
 
 const ACTIVE_BOOKING_STATUSES = ["pending", "approved", "paymentPending", "confirmed"];
 
+const normalizeAreaKey = (city, area) =>
+  `${(city || "unknown").trim().toLowerCase()}::${(area || city || "unknown").trim().toLowerCase()}`;
+
+const buildDemandLabel = (score) => {
+  if (score >= 12) return "high";
+  if (score >= 6) return "medium";
+  return "low";
+};
+
+const buildPostDemandData = async (postIds = []) => {
+  if (!postIds.length) {
+    return new Map();
+  }
+
+  const [savedPosts, inquiries, bookingRequests] = await Promise.all([
+    prisma.savedPost.findMany({
+      where: {
+        postId: {
+          in: postIds,
+        },
+      },
+      select: {
+        postId: true,
+      },
+    }),
+    prisma.inquiry.findMany({
+      where: {
+        postId: {
+          in: postIds,
+        },
+      },
+      select: {
+        postId: true,
+      },
+    }),
+    prisma.bookingRequest.findMany({
+      where: {
+        postId: {
+          in: postIds,
+        },
+      },
+      select: {
+        postId: true,
+      },
+    }),
+  ]);
+
+  const demandMap = new Map(
+    postIds.map((postId) => [
+      postId,
+      {
+        savedCount: 0,
+        inquiryCount: 0,
+        bookingCount: 0,
+      },
+    ]),
+  );
+
+  savedPosts.forEach(({ postId }) => {
+    const current = demandMap.get(postId);
+    if (current) current.savedCount += 1;
+  });
+
+  inquiries.forEach(({ postId }) => {
+    const current = demandMap.get(postId);
+    if (current) current.inquiryCount += 1;
+  });
+
+  bookingRequests.forEach(({ postId }) => {
+    const current = demandMap.get(postId);
+    if (current) current.bookingCount += 1;
+  });
+
+  demandMap.forEach((value, postId) => {
+    const demandScore = value.savedCount * 2 + value.inquiryCount * 3 + value.bookingCount * 4;
+    demandMap.set(postId, {
+      ...value,
+      demandScore,
+      demandLevel: buildDemandLabel(demandScore),
+    });
+  });
+
+  return demandMap;
+};
+
 export const getPosts = async (req, res) => {
   const query = req.query;
 
@@ -33,6 +118,8 @@ export const getPosts = async (req, res) => {
       },
     });
 
+    const demandMap = await buildPostDemandData(posts.map((post) => post.id));
+
     const postsWithRemainingSlots = await Promise.all(
       posts.map(async (post) => {
         const activeRequestsCount = await prisma.bookingRequest.count({
@@ -47,6 +134,13 @@ export const getPosts = async (req, res) => {
         return {
           ...post,
           remainingSlots: Math.max(0, post.capacity - activeRequestsCount),
+          ...(demandMap.get(post.id) || {
+            savedCount: 0,
+            inquiryCount: 0,
+            bookingCount: 0,
+            demandScore: 0,
+            demandLevel: "low",
+          }),
         };
       })
     );
@@ -55,6 +149,167 @@ export const getPosts = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get posts" });
+  }
+};
+
+export const getDemandOverview = async (req, res) => {
+  try {
+    const [posts, searches, bookingRequests, inquiries] = await Promise.all([
+      prisma.post.findMany({
+        where: { status: "available" },
+        select: {
+          id: true,
+          title: true,
+          city: true,
+          area: true,
+          latitude: true,
+          longitude: true,
+          rent: true,
+        },
+      }),
+      prisma.watchlist.findMany({
+        where: {
+          isActive: true,
+          postId: null,
+        },
+        select: {
+          city: true,
+          area: true,
+        },
+      }),
+      prisma.bookingRequest.findMany({
+        select: {
+          post: {
+            select: {
+              city: true,
+              area: true,
+            },
+          },
+        },
+      }),
+      prisma.inquiry.findMany({
+        select: {
+          post: {
+            select: {
+              city: true,
+              area: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const areaMap = new Map();
+
+    const ensureArea = (city, area) => {
+      const key = normalizeAreaKey(city, area);
+
+      if (!areaMap.has(key)) {
+        areaMap.set(key, {
+          key,
+          city: city || "Unknown",
+          area: area || city || "Unknown",
+          latitudeValues: [],
+          longitudeValues: [],
+          listings: 0,
+          searches: 0,
+          bookings: 0,
+          inquiries: 0,
+          samplePosts: [],
+        });
+      }
+
+      return areaMap.get(key);
+    };
+
+    posts.forEach((post) => {
+      const entry = ensureArea(post.city, post.area);
+      entry.listings += 1;
+
+      const lat = Number(post.latitude);
+      const lng = Number(post.longitude);
+
+      if (!Number.isNaN(lat)) entry.latitudeValues.push(lat);
+      if (!Number.isNaN(lng)) entry.longitudeValues.push(lng);
+      if (entry.samplePosts.length < 3) {
+        entry.samplePosts.push({
+          id: post.id,
+          title: post.title,
+          rent: post.rent,
+        });
+      }
+    });
+
+    searches.forEach((search) => {
+      const entry = ensureArea(search.city, search.area);
+      entry.searches += 1;
+    });
+
+    bookingRequests.forEach((booking) => {
+      const city = booking.post?.city;
+      const area = booking.post?.area;
+      const entry = ensureArea(city, area);
+      entry.bookings += 1;
+    });
+
+    inquiries.forEach((inquiry) => {
+      const city = inquiry.post?.city;
+      const area = inquiry.post?.area;
+      const entry = ensureArea(city, area);
+      entry.inquiries += 1;
+    });
+
+    const allAreas = [...areaMap.values()]
+      .map((entry) => {
+        const score = entry.searches * 2 + entry.inquiries * 3 + entry.bookings * 4;
+        const demandLevel = buildDemandLabel(score);
+        const avgLatitude =
+          entry.latitudeValues.length > 0
+            ? entry.latitudeValues.reduce((sum, value) => sum + value, 0) / entry.latitudeValues.length
+            : null;
+        const avgLongitude =
+          entry.longitudeValues.length > 0
+            ? entry.longitudeValues.reduce((sum, value) => sum + value, 0) / entry.longitudeValues.length
+            : null;
+
+        return {
+          key: entry.key,
+          city: entry.city,
+          area: entry.area,
+          listings: entry.listings,
+          searches: entry.searches,
+          bookings: entry.bookings,
+          inquiries: entry.inquiries,
+          demandScore: score,
+          demandLevel,
+          latitude: avgLatitude,
+          longitude: avgLongitude,
+          samplePosts: entry.samplePosts,
+        };
+      })
+      .filter((entry) => entry.listings > 0)
+      .sort((a, b) => b.demandScore - a.demandScore);
+
+    const highDemandAreas = allAreas.filter((entry) => entry.demandLevel === "high").slice(0, 5);
+    const mediumDemandAreas = allAreas.filter((entry) => entry.demandLevel === "medium").slice(0, 5);
+    const lowDemandAreas = [...allAreas]
+      .sort((a, b) => a.demandScore - b.demandScore || b.listings - a.listings)
+      .slice(0, 5);
+
+    res.status(200).json({
+      summary: {
+        totalAreasTracked: allAreas.length,
+        highDemandCount: highDemandAreas.length,
+        mediumDemandCount: mediumDemandAreas.length,
+        lowDemandCount: lowDemandAreas.length,
+      },
+      highDemandAreas,
+      lowDemandAreas,
+      allAreas,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to load demand overview" });
   }
 };
 
@@ -92,6 +347,15 @@ export const getPost = async (req, res) => {
         },
       },
     });
+
+    const demandMap = await buildPostDemandData([id]);
+    const demandData = demandMap.get(id) || {
+      savedCount: 0,
+      inquiryCount: 0,
+      bookingCount: 0,
+      demandScore: 0,
+      demandLevel: "low",
+    };
 
     const remainingSlots = Math.max(0, post.capacity - activeRequestsCount);
 
@@ -138,6 +402,7 @@ export const getPost = async (req, res) => {
       remainingSlots,
       bookingRequestStatus,
       bookingRequestId,
+      ...demandData,
     });
   } catch (err) {
     console.log(err);

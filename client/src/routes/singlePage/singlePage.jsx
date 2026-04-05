@@ -7,6 +7,12 @@ import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import apiRequest from "../../lib/apiRequest";
 
+const demandLabelMap = {
+  high: "High demand",
+  medium: "Medium demand",
+  low: "Low demand",
+};
+
 function SinglePage() {
   const post = useLoaderData();
   const [saved, setSaved] = useState(post.isSaved);
@@ -96,6 +102,12 @@ function SinglePage() {
             <div className="top">
               <div className="post">
                 <h1>{post.title}</h1>
+                <div className={`demandPill ${post.demandLevel || "low"}`}>
+                  <strong>{demandLabelMap[post.demandLevel] || "Low demand"}</strong>
+                  <span>
+                    {post.savedCount || 0} saves • {post.inquiryCount || 0} inquiries • {post.bookingCount || 0} bookings
+                  </span>
+                </div>
                 <div className="address">
                   <img src="/pin.png" alt="" />
                   <span>
@@ -162,6 +174,19 @@ function SinglePage() {
             <div className="size">
               <img src="/bath.png" alt="" />
               <span>{post.bathroomCount || 0} bathrooms</span>
+            </div>
+          </div>
+          <p className="title">Demand Intelligence</p>
+          <div className="demandInsightBox">
+            <strong>{demandLabelMap[post.demandLevel] || "Low demand"} listing</strong>
+            <p>
+              This score is based on how many students saved, inquired about,
+              and tried to book this boarding.
+            </p>
+            <div className="demandStats">
+              <span>{post.savedCount || 0} saves</span>
+              <span>{post.inquiryCount || 0} inquiries</span>
+              <span>{post.bookingCount || 0} bookings</span>
             </div>
           </div>
           <p className="title">Nearby Places</p>

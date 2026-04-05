@@ -35,6 +35,40 @@ const reportInclude = {
 const validTargetTypes = new Set(["user", "boarding", "bookingRequest", "message"]);
 const isProduction = process.env.NODE_ENV === "production";
 
+const inquiryInclude = {
+  post: {
+    select: {
+      id: true,
+      title: true,
+      city: true,
+      area: true,
+    },
+  },
+  student: {
+    select: {
+      id: true,
+      username: true,
+      fullName: true,
+      avatar: true,
+    },
+  },
+  owner: {
+    select: {
+      id: true,
+      username: true,
+      fullName: true,
+      avatar: true,
+    },
+  },
+  chat: {
+    select: {
+      id: true,
+      lastMessage: true,
+      createdAt: true,
+    },
+  },
+};
+
 export const createReport = async (req, res) => {
   const {
     targetId,
@@ -42,6 +76,7 @@ export const createReport = async (req, res) => {
     reason,
     description,
     postId,
+    proofImage,
   } = req.body;
 
   if (!targetId || !reason?.trim()) {
@@ -79,6 +114,7 @@ export const createReport = async (req, res) => {
         targetType,
         reason: reason.trim(),
         description: description?.trim() || null,
+        proofImage: proofImage?.trim() || null,
         ...(postId ? { postId } : {}),
       },
       include: reportInclude,
@@ -180,6 +216,119 @@ export const getReports = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to load reports" });
+  }
+};
+
+export const getAdminOverview = async (req, res) => {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  try {
+    const [
+      totalReports,
+      openReports,
+      underReviewReports,
+      resolvedReports,
+      totalInquiries,
+      pendingInquiries,
+      acceptedInquiries,
+      totalFlaggedMessages,
+      dangerMessages,
+      recentInquiries,
+      flaggedMessages,
+    ] = await Promise.all([
+      prisma.report.count(),
+      prisma.report.count({ where: { status: "open" } }),
+      prisma.report.count({ where: { status: "underReview" } }),
+      prisma.report.count({ where: { status: "resolved" } }),
+      prisma.inquiry.count(),
+      prisma.inquiry.count({ where: { status: "pending" } }),
+      prisma.inquiry.count({ where: { status: "accepted" } }),
+      prisma.message.count({ where: { scamFlag: { not: "safe" } } }),
+      prisma.message.count({ where: { scamFlag: "danger" } }),
+      prisma.inquiry.findMany({
+        include: inquiryInclude,
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      prisma.message.findMany({
+        where: { scamFlag: { not: "safe" } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+    ]);
+
+    const userIds = [...new Set(flaggedMessages.map((message) => message.userId))];
+    const chatIds = [...new Set(flaggedMessages.map((message) => message.chatId))];
+
+    const [users, chats] = await Promise.all([
+      prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          avatar: true,
+        },
+      }),
+      prisma.chat.findMany({
+        where: { id: { in: chatIds } },
+        include: {
+          inquiry: {
+            select: {
+              id: true,
+              post: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const userMap = new Map(users.map((user) => [user.id, user]));
+    const chatMap = new Map(chats.map((chat) => [chat.id, chat]));
+
+    const suspiciousMessages = flaggedMessages.map((message) => {
+      const sender = userMap.get(message.userId) || null;
+      const chat = chatMap.get(message.chatId) || null;
+
+      return {
+        ...message,
+        sender,
+        chat: chat
+          ? {
+              id: chat.id,
+              userIDs: chat.userIDs,
+              lastMessage: chat.lastMessage,
+              inquiry: chat.inquiry,
+            }
+          : null,
+      };
+    });
+
+    res.status(200).json({
+      summary: {
+        totalReports,
+        openReports,
+        underReviewReports,
+        resolvedReports,
+        totalInquiries,
+        pendingInquiries,
+        acceptedInquiries,
+        totalFlaggedMessages,
+        dangerMessages,
+      },
+      recentInquiries,
+      suspiciousMessages,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to load admin overview" });
   }
 };
 

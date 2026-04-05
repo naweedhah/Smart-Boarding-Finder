@@ -2,6 +2,7 @@ import express from "express";
 import {
   createReport,
   createDevSeedReport,
+  getAdminOverview,
   getReports,
   resolveReport,
   warnUser,
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.post("/", verifyToken, createReport);
 router.post("/dev-seed", verifyToken, createDevSeedReport);
+router.get("/admin/overview", verifyToken, getAdminOverview);
 router.get("/", verifyToken, getReports);
 router.patch("/:id", verifyToken, resolveReport);
 router.post("/warn", verifyToken, warnUser);

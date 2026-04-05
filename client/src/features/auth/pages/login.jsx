@@ -4,6 +4,12 @@ import { Link, useNavigate } from "react-router-dom";
 import apiRequest from "../../../lib/apiRequest";
 import { AuthContext } from "../../../context/AuthContext";
 
+const getDashboardPath = (role) => {
+  if (role === "admin") return "/sakith/admin";
+  if (role === "boardingOwner") return "/sakith/inquiry";
+  return "/profile";
+};
+
 const validateLoginForm = (values) => {
   const nextErrors = {};
 
@@ -92,9 +98,9 @@ function Login() {
         ...values,
       });
 
-      updateUser(res.data)
+      updateUser(res.data);
 
-      navigate("/");
+      navigate(getDashboardPath(res.data.role));
     } catch (err) {
       setError(err.response?.data?.message || "Failed to login.");
     } finally {

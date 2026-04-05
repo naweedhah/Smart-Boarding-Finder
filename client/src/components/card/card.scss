@@ -3,6 +3,7 @@
 .card {
   display: flex;
   gap: 20px;
+  position: relative;
 
   .imageContainer {
     flex: 2;
@@ -51,6 +52,38 @@
       color: #888;
     }
 
+    .demandBadge {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: max-content;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(51, 45, 42, 0.1);
+
+      strong {
+        color: #2f2a27;
+        font-size: 14px;
+      }
+
+      span {
+        color: #7e736d;
+        font-size: 12px;
+      }
+
+      &.high {
+        background: rgba(230, 57, 70, 0.1);
+      }
+
+      &.medium {
+        background: rgba(244, 162, 97, 0.14);
+      }
+
+      &.low {
+        background: rgba(42, 157, 143, 0.12);
+      }
+    }
+
     .price {
       font-size: 20px;
       font-weight: 300;
@@ -83,6 +116,7 @@
       .icons {
         display: flex;
         gap: 20px;
+        align-items: center;
 
         .icon {
           border: 1px solid #999;
@@ -97,7 +131,162 @@
             background-color: lightgray;
           }
         }
+
+        .actionButton {
+          background: white;
+          min-width: 42px;
+          min-height: 32px;
+        }
+
+        .reportButton {
+          padding: 6px 10px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #9e1c1c;
+          border-color: rgba(158, 28, 28, 0.35);
+        }
       }
+    }
+  }
+
+  .reportOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(34, 29, 28, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+  }
+
+  .reportModal {
+    width: min(100%, 560px);
+    background: #fffaf7;
+    border-radius: 24px;
+    border: 1px solid rgba(51, 45, 42, 0.12);
+    padding: 24px;
+    box-shadow: 0 24px 80px rgba(51, 45, 42, 0.16);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .reportModalHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    h3 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      color: #221d1c;
+    }
+
+    p {
+      margin: 0;
+      color: #6c625d;
+    }
+  }
+
+  .closeModalButton,
+  .secondaryAction {
+    border: 1px solid rgba(51, 45, 42, 0.16);
+    background: white;
+    border-radius: 999px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .reportForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: #3a322f;
+      font-weight: 600;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(51, 45, 42, 0.16);
+      border-radius: 16px;
+      padding: 14px 16px;
+      resize: vertical;
+      font: inherit;
+      color: #221d1c;
+      background: white;
+    }
+  }
+
+  .proofUploadBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(51, 45, 42, 0.12);
+    border-radius: 18px;
+    background: rgba(254, 206, 81, 0.08);
+  }
+
+  .proofUploadHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    span {
+      font-weight: 600;
+      color: #3a322f;
+    }
+  }
+
+  .proofHint {
+    margin: 0;
+    font-size: 14px;
+    color: #6c625d;
+  }
+
+  .proofPreview {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+
+    img {
+      width: 180px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 1px solid rgba(51, 45, 42, 0.12);
+    }
+  }
+
+  .reportError {
+    margin: 0;
+    color: #b42318;
+    font-size: 14px;
+  }
+
+  .reportActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button[type="submit"] {
+      border: none;
+      background: #fece51;
+      color: #221d1c;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 700;
+      cursor: pointer;
     }
   }
 }

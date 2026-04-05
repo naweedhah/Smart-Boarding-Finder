@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
+import apiRequest from "../../../lib/apiRequest";
 import {
   acceptInquiry,
   createInquiry,
@@ -15,9 +16,10 @@ export default function InquiryBox() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [busyInquiryId, setBusyInquiryId] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, updateUser } = useContext(AuthContext);
 
   const postId = searchParams.get("postId");
   const ownerId = searchParams.get("ownerId");
@@ -99,10 +101,43 @@ export default function InquiryBox() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await apiRequest.post("/auth/logout");
+      updateUser(null);
+      navigate("/");
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message || "Failed to logout.",
+      );
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="sakith-page">
       <div className="card">
-        <h2>{isOwnerView ? "Manage Inquiries" : "Inquiry Center"}</h2>
+        <div className="header-row">
+          <div>
+            <h2>{isOwnerView ? "Manage Inquiries" : "Inquiry Center"}</h2>
+            {isOwnerView && (
+              <p className="text-muted">
+                Signed in as {currentUser?.fullName || currentUser?.username || "Owner"}.
+              </p>
+            )}
+          </div>
+          {isOwnerView && (
+            <button
+              className="btn btn-secondary"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? "Logging out..." : "Logout"}
+            </button>
+          )}
+        </div>
         <p className="text-muted">
           {isOwnerView
             ? "Review incoming inquiries, accept valid ones, and open chats with students."

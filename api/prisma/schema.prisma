@@ -323,6 +323,7 @@ model Report {
   targetId    String
   reason      String
   description String?
+  proofImage  String?
   status      ReportStatus     @default(open)
   adminNotes  String?
   resolvedAt  DateTime?

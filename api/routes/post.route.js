@@ -4,6 +4,7 @@ import {
   addPost,
   createBookingRequest,
   deletePost,
+  getDemandOverview,
   getPost,
   getPosts,
   updatePost,
@@ -12,6 +13,7 @@ import {
 const router = express.Router();
 
 router.get("/", getPosts);
+router.get("/demand/overview", getDemandOverview);
 router.get("/:id", getPost);
 router.post("/:id/book", verifyToken, createBookingRequest);
 router.post("/", verifyToken, addPost);

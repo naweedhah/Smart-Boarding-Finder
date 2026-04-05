@@ -18,6 +18,7 @@ const defaultAlertForm = {
 };
 
 function WatchlistContent({ savedPosts, initialSearchAlerts, initialPreferences }) {
+  const [savedBoardings, setSavedBoardings] = useState(savedPosts || []);
   const [searchAlerts, setSearchAlerts] = useState(initialSearchAlerts || []);
   const [preferences, setPreferences] = useState(initialPreferences || null);
   const [form, setForm] = useState(defaultAlertForm);
@@ -85,6 +86,22 @@ function WatchlistContent({ savedPosts, initialSearchAlerts, initialPreferences 
     }
   };
 
+  const handleRemoveSavedPost = (postId) => {
+    setSavedBoardings((prev) => prev.filter((item) => item.id !== postId));
+    setMessage("Saved boarding removed.");
+    setError("");
+  };
+
+  const handleSavedPostFeedback = ({ type, message }) => {
+    if (type === "error") {
+      setError(message);
+      return;
+    }
+
+    setMessage(message);
+    setError("");
+  };
+
   return (
     <div className="watchlistPage">
       <section className="heroCard">
@@ -97,7 +114,7 @@ function WatchlistContent({ savedPosts, initialSearchAlerts, initialPreferences 
           </p>
         </div>
         <div className="summaryCard">
-          <strong>{savedPosts.length}</strong>
+          <strong>{savedBoardings.length}</strong>
           <span>Saved boardings ready to review</span>
         </div>
       </section>
@@ -118,8 +135,13 @@ function WatchlistContent({ savedPosts, initialSearchAlerts, initialPreferences 
           <Link to="/list">Browse More</Link>
         </div>
 
-        {savedPosts.length > 0 ? (
-          <List posts={savedPosts} />
+        {savedBoardings.length > 0 ? (
+          <List
+            posts={savedBoardings}
+            onRemoveSaved={handleRemoveSavedPost}
+            onReportSuccess={handleSavedPostFeedback}
+            reportEnabled
+          />
         ) : (
           <div className="emptyPanel">
             <p>

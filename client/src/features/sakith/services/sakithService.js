@@ -18,6 +18,9 @@ export const createReport = (data) =>
 export const getReports = () =>
   apiRequest.get("/report");
 
+export const getAdminOverview = () =>
+  apiRequest.get("/report/admin/overview");
+
 export const resolveReport = (id, data = {}) =>
   apiRequest.patch(`/report/${id}`, data);
 

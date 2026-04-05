@@ -8,8 +8,10 @@ export const singlePageLoader = async ({ params }) => {
 export const listPageLoader = async ({ request }) => {
   const query = request.url.split("?")[1];
   const postPromise = apiRequest("/posts?" + query);
+  const demandPromise = apiRequest("/posts/demand/overview");
   return defer({
     postResponse: postPromise,
+    demandResponse: demandPromise,
   });
 };
 

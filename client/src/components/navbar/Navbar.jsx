@@ -5,6 +5,12 @@ import { AuthContext } from "../../context/AuthContext";
 import { useNotificationStore } from "../../lib/notificationStore";
 import { SocketContext } from "../../context/SocketContext";
 
+const getDashboardPath = (role) => {
+  if (role === "admin") return "/sakith/admin";
+  if (role === "boardingOwner") return "/sakith/inquiry";
+  return "/profile";
+};
+
 function Navbar() {
   const [open, setOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -90,6 +96,8 @@ function Navbar() {
       console.log(err);
     }
   };
+
+  const dashboardPath = getDashboardPath(currentUser?.role);
 
   return (
     <nav>
@@ -194,7 +202,7 @@ function Navbar() {
               </div>
             </div>
 
-            <Link to="/profile" className="dashboardButton" onClick={closeMenu}>
+            <Link to={dashboardPath} className="dashboardButton" onClick={closeMenu}>
               Dashboard
             </Link>
           </div>
@@ -249,10 +257,10 @@ function Navbar() {
                     <span>{currentUser.role || "student"}</span>
                   </div>
                 </div>
-                <Link to="/profile#notifications" onClick={closeMenu}>
+                <Link to={currentUser?.role === "student" ? "/profile#notifications" : dashboardPath} onClick={closeMenu}>
                   Alerts {number > 0 ? `(${number})` : ""}
                 </Link>
-                <Link to="/profile" className="dashboardButton" onClick={closeMenu}>
+                <Link to={dashboardPath} className="dashboardButton" onClick={closeMenu}>
                   Dashboard
                 </Link>
               </>

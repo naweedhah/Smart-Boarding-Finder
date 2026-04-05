@@ -71,6 +71,28 @@ const defaultForm = {
   notes: "",
 };
 
+const normalizeProfileToForm = (profile) => {
+  if (!profile) {
+    return defaultForm;
+  }
+
+  return {
+    ...defaultForm,
+    ...profile,
+    age: profile.age != null ? String(profile.age) : "",
+    budgetMin: profile.budgetMin != null ? String(profile.budgetMin) : "",
+    budgetMax: profile.budgetMax != null ? String(profile.budgetMax) : "",
+    cleanlinessLevel:
+      profile.cleanlinessLevel != null ? String(profile.cleanlinessLevel) : "",
+    sociabilityLevel:
+      profile.sociabilityLevel != null ? String(profile.sociabilityLevel) : "",
+    smokingAllowed:
+      profile.smokingAllowed == null ? "" : String(profile.smokingAllowed),
+    petsAllowed: profile.petsAllowed == null ? "" : String(profile.petsAllowed),
+    notes: profile.notes || "",
+  };
+};
+
 const validateRoommateForm = (values) => {
   const nextErrors = {};
   const age = Number(values.age);
@@ -170,10 +192,7 @@ const validateRoommateForm = (values) => {
 };
 
 function RoommatePageContent({ initialProfile, initialMatches }) {
-  const [form, setForm] = useState({
-    ...defaultForm,
-    ...(initialProfile || {}),
-  });
+  const [form, setForm] = useState(normalizeProfileToForm(initialProfile));
   const [fieldErrors, setFieldErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
   const [matches, setMatches] = useState(initialMatches || []);

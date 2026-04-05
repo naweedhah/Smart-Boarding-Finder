@@ -2,10 +2,16 @@ import Chat from "../../components/chat/Chat";
 import List from "../../components/list/List";
 import "./profilePage.scss";
 import apiRequest from "../../lib/apiRequest";
-import { Await, Link, useLoaderData, useNavigate, useSearchParams } from "react-router-dom";
+import { Await, Link, Navigate, useLoaderData, useNavigate, useSearchParams } from "react-router-dom";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNotificationStore } from "../../lib/notificationStore";
+
+const getDashboardPath = (role) => {
+  if (role === "admin") return "/sakith/admin";
+  if (role === "boardingOwner") return "/sakith/inquiry";
+  return "/profile";
+};
 
 function StudentDashboard({
   currentUser,
@@ -20,11 +26,11 @@ function StudentDashboard({
 }) {
   const [chatCollapsed, setChatCollapsed] = useState(!initialChatId);
   const [searchAlerts, setSearchAlerts] = useState(initialSearchAlerts || []);
+  const [savedPosts, setSavedPosts] = useState(postData.savedPosts || []);
   const [preferenceMessage, setPreferenceMessage] = useState("");
   const [preferenceError, setPreferenceError] = useState("");
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
-  const savedPosts = postData.savedPosts || [];
   const pendingRequests = 0;
   const confirmedBookings = 0;
   const roommateMatches = 0;
@@ -37,6 +43,10 @@ function StudentDashboard({
       useNotificationStore.setState({ preferences: initialPreferences });
     }
   }, [initialPreferences, preferences]);
+
+  useEffect(() => {
+    setSavedPosts(postData.savedPosts || []);
+  }, [postData.savedPosts]);
 
   const fallbackNotifications = [
     unreadCount > 0
@@ -122,6 +132,22 @@ function StudentDashboard({
     } finally {
       setIsSendingTestEmail(false);
     }
+  };
+
+  const handleRemoveSavedPost = (postId) => {
+    setSavedPosts((prev) => prev.filter((item) => item.id !== postId));
+    setPreferenceMessage("Saved boarding removed from your list.");
+    setPreferenceError("");
+  };
+
+  const handleSavedPostFeedback = ({ type, message }) => {
+    if (type === "error") {
+      setPreferenceError(message);
+      return;
+    }
+
+    setPreferenceMessage(message);
+    setPreferenceError("");
   };
 
   return (
@@ -379,7 +405,12 @@ function StudentDashboard({
               <Link to="/list">Explore More</Link>
             </div>
             {savedPosts.length > 0 ? (
-              <List posts={savedPosts} />
+              <List
+                posts={savedPosts}
+                onRemoveSaved={handleRemoveSavedPost}
+                onReportSuccess={handleSavedPostFeedback}
+                reportEnabled
+              />
             ) : (
               <div className="emptyPanel">
                 <p>
@@ -446,6 +477,10 @@ function ProfilePage() {
       console.log(err);
     });
   }, [fetchNotifications]);
+
+  if (currentUser?.role && currentUser.role !== "student") {
+    return <Navigate to={getDashboardPath(currentUser.role)} replace />;
+  }
 
   const handleLogout = async () => {
     try {
