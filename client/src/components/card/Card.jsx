@@ -111,12 +111,12 @@ function Card({ item, onRemoveSaved, onReportSuccess, reportEnabled = false }) {
             {onRemoveSaved && (
               <button
                 type="button"
-                className="icon actionButton"
+                className="icon actionButton removeSavedButton"
                 onClick={handleRemoveSaved}
                 disabled={isRemoving}
                 title="Remove from saved boardings"
               >
-                {isRemoving ? "..." : <img src="/save.png" alt="Remove saved boarding" />}
+                {isRemoving ? "Removing..." : "Remove"}
               </button>
             )}
             {reportEnabled && (

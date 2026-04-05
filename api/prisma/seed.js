@@ -827,6 +827,13 @@ async function main() {
       { userId: student.id, postId: posts[0].id },
       { userId: student.id, postId: posts[1].id },
       { userId: student.id, postId: posts[3].id },
+      { userId: roommateStudents[0].id, postId: posts[0].id },
+      { userId: roommateStudents[1].id, postId: posts[0].id },
+      { userId: roommateStudents[2].id, postId: posts[1].id },
+      { userId: roommateStudents[3].id, postId: posts[0].id },
+      { userId: roommateStudents[4].id, postId: posts[1].id },
+      { userId: roommateStudents[5].id, postId: posts[0].id },
+      { userId: roommateStudents[6].id, postId: posts[3].id },
     ],
   });
 
@@ -934,6 +941,12 @@ async function main() {
         status: "paymentPending",
       },
       {
+        studentId: roommateStudents[4].id,
+        ownerId: ownerKandy.id,
+        postId: posts[1].id,
+        status: "pending",
+      },
+      {
         studentId: roommateStudents[6].id,
         ownerId: ownerColombo.id,
         postId: posts[3].id,
@@ -1035,6 +1048,13 @@ async function main() {
         type: "view",
         status: "accepted",
         chatId: chatB.id,
+      },
+      {
+        studentId: roommateStudents[4].id,
+        ownerId: ownerKandy.id,
+        postId: posts[1].id,
+        type: "view",
+        status: "pending",
       },
       {
         studentId: roommateStudents[5].id,

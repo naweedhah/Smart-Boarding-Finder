@@ -100,18 +100,55 @@ export const getPosts = async (req, res) => {
   const query = req.query;
 
   try {
+    const city = query.city?.trim();
+    const area = query.area?.trim();
+    const boardingType = query.boardingType?.trim();
+    const preferredTenantGender = query.preferredTenantGender?.trim();
+    const status = query.status?.trim();
+    const parsedCapacity = Number.parseInt(query.capacity, 10);
+    const parsedMinPrice = Number.parseInt(query.minPrice, 10);
+    const parsedMaxPrice = Number.parseInt(query.maxPrice, 10);
+
+    const where = {
+      ...(city
+        ? {
+            OR: [{ city }, { area: city }],
+          }
+        : {}),
+      ...(area
+        ? {
+            ...(city
+              ? {
+                  AND: [{ OR: [{ area }, { city: area }] }],
+                }
+              : {
+                  OR: [{ area }, { city: area }],
+                }),
+          }
+        : {}),
+      ...(boardingType ? { boardingType } : {}),
+      ...(preferredTenantGender && preferredTenantGender !== "any"
+        ? { preferredTenantGender }
+        : {}),
+      ...(status ? { status } : {}),
+      ...(Number.isFinite(parsedCapacity) && parsedCapacity > 0
+        ? { capacity: parsedCapacity }
+        : {}),
+    };
+
+    const rent = {
+      ...(Number.isFinite(parsedMinPrice) && parsedMinPrice > 0
+        ? { gte: parsedMinPrice }
+        : {}),
+      ...(Number.isFinite(parsedMaxPrice) && parsedMaxPrice > 0
+        ? { lte: parsedMaxPrice }
+        : {}),
+    };
+
     const posts = await prisma.post.findMany({
       where: {
-        city: query.city || undefined,
-        area: query.area || undefined,
-        boardingType: query.boardingType || undefined,
-        preferredTenantGender: query.preferredTenantGender || undefined,
-        status: query.status || undefined,
-        capacity: parseInt(query.capacity) || undefined,
-        rent: {
-          gte: parseInt(query.minPrice) || undefined,
-          lte: parseInt(query.maxPrice) || undefined,
-        },
+        ...where,
+        ...(Object.keys(rent).length ? { rent } : {}),
       },
       orderBy: {
         createdAt: "desc",
