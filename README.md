@@ -1,5 +1,10 @@
 # BoardingFinder
 
+> **Team project (SLIIT, IT Project Management).** This is the original Express + Prisma +
+> MongoDB version built by our team. I later rewrote the backend on my own in Laravel 13
+> (Sanctum, Reverb, PostgreSQL/MySQL, 155 tests, CI and Docker) in
+> [boardingfinder-laravel](https://github.com/naweedhah/boardingfinder-laravel).
+
 BoardingFinder is a full-stack student boarding platform for discovering listings, viewing locations on a map, saving favorites, sending inquiries, chatting in real time, and managing bookings.
 
 ## Features

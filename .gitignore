@@ -3,3 +3,10 @@
 **/node_modules
 **/dist
 config.bat
+
+# Playwright artefacts (auth state can hold a session cookie)
+client/e2e/.auth/
+client/playwright-report/
+client/test-results/
+client/blob-report/
+**/.env
